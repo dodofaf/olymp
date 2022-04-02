@@ -24,34 +24,51 @@ static int find_root(int x, vector<int> &seg, vector<int> &pseg)
 	return s1;
 }
 
-static void zap_3(int x, int n, int q, vector<vector<int>> &zap, vector<int> &seg, vector<set<int>> &segm)
+void union_lists(int x, int y, vector<int> &seg, vector<list<int>> &segm)
+{
+	list<int> l;
+	int s1 = seg[x], s2 = seg[y];
+	if (s1 != s2) { 
+		auto itr1 = segm[s1].begin(), itr2 = segm[s2].begin();
+		while (itr1 != segm[s1].end() || itr2 != segm[s2].end()) {
+			if (itr1 != segm[s1].end()) {
+				if (itr2 != segm[s2].end()) {
+					if ((*itr1) < (*itr2)) {
+						l.push_back((*itr1));
+						++itr1;
+					} else {
+						l.push_back((*itr2));
+						seg[(*itr2)] = s1;
+						++itr2;
+					}
+				} else {
+					l.push_back((*itr1));
+					++itr1;
+				}
+			} else {
+				l.push_back((*itr2));
+				seg[(*itr2)] = s1;
+				++itr2;
+			}
+		}
+		segm[s1] = l;
+		segm[s2].clear();
+	}
+}
+
+static void zap_3(int x, int n, vector<vector<int>> &zap, vector<int> &seg, vector<list<int>> &segm)
 {
 	for (int i=0;i<n;++i) {
 		segm[i].clear();
-		segm[i].insert(i);
+		segm[i].push_back(i);
 		seg[i] = i;
 	}
 	for (int i=0;i<=x;++i) {
 		if (zap[i][0] == 2) {
-			int s1 = seg[zap[i][1]], s2 = seg[zap[i][2]];
-			if (s1 != s2) {
-				if (segm[s1].size() > segm[s2].size()) {
-					for(auto j=segm[s2].begin();j!=segm[s2].end();++j) {
-						segm[s1].insert((*j));
-						seg[(*j)] = s1;
-					}
-					segm[s2].clear();
-				} else {
-					for(auto j=segm[s1].begin();j!=segm[s1].end();++j) {
-						segm[s2].insert((*j));
-						seg[(*j)] = s2;
-					}
-					segm[s1].clear();
-				}
-			}
+			union_lists(zap[i][1], zap[i][2], seg, segm);
 		}
 		if (zap[i][0] == 3 && zap[i][1] != i-1) {
-			zap_3(zap[i][1], n, q, zap, seg, segm);
+			zap_3(zap[i][1], n, zap, seg, segm);
 		}
 	}
 }
@@ -97,45 +114,30 @@ int main()
 			}
 		}
 	} else {
-		vector<set<int>> segm(n);
+		vector<list<int>> segm(n);
 		vector<int> seg(n);
 		for (int i=0;i<n;++i) {
-			segm[i].insert(i);
+			segm[i].push_back(i);
 			seg[i] = i;
 		}
 		for (int i=0;i<q;++i) {
 			if (zap[i][0] == 1) {
-				int s1 = seg[zap[i][1]], siz = segm[s1].size();
-				if (siz > zap[i][2]) {
-					auto itr = segm[s1].begin();
-					for(int j=0;j<zap[i][2];++j) {
-						++itr;
-					}
+				int s1 = seg[zap[i][1]];
+				auto itr = segm[s1].begin();
+				for(int j=0;j<zap[i][2] && itr!=segm[s1].end();++j) {
+					++itr;
+				}
+				if (itr!=segm[s1].end()) {
 					cout<<(*itr)+1<<endl;
 				} else {
 					cout<<-1<<endl;
 				}
 			}
 			if (zap[i][0] == 2) {
-				int s1 = seg[zap[i][1]], s2 = seg[zap[i][2]];
-				if (s1 != s2) {
-					if (segm[s1].size() > segm[s2].size()) {
-						for(auto j=segm[s2].begin();j!=segm[s2].end();++j) {
-							segm[s1].insert((*j));
-							seg[(*j)] = s1;
-						}
-						segm[s2].clear();
-					} else {
-						for(auto j=segm[s1].begin();j!=segm[s1].end();++j) {
-							segm[s2].insert((*j));
-							seg[(*j)] = s2;
-						}
-						segm[s1].clear();
-					}
-				}
+				union_lists(zap[i][1], zap[i][2], seg, segm);
 			}
 			if (zap[i][0] == 3 && zap[i][1] != i-1) {
-				zap_3(zap[i][1], n, q, zap, seg, segm);
+				zap_3(zap[i][1], n, zap, seg, segm);
 			}
 		}
 	}
