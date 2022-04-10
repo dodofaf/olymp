@@ -48,15 +48,6 @@ static void build_tree(int q, vector<vector<int>> &zap, vector<Ver> &tree)
 	        return a.dep < b.dep || (a.dep == b.dep && a.idx < b.idx);
 	    });
 	}
-#if 0
-	for(int i=0;i<q;++i) {
-		cout<<i<<':';
-		for(auto j=tree[i].ch.begin();j!=tree[i].ch.end();++j) {
-			cout<<(*j).idx<<' ';
-		}
-		cout<<endl;
-	}
-#endif
 }
 
 static void swap(int &a, int &b)
@@ -75,26 +66,37 @@ static int find_root(int x, vector<int> &seg, vector<int> &pseg)
 	return s1;
 }
 
-static int zap_1(int x, int k, int n, vector<int> &seg, vector<int> &pseg)
+static int zap_1(int x, int k, int n, int ns, int s, vector<vector<int>> &c, vector<int> &seg, vector<int> &pseg)
 {
+	int d = 0;
 	int s1 = find_root(seg[x], seg, pseg);
-	for (int i=0;i<n;i++) {
-		int si = find_root(seg[i], seg, pseg);
-		if (si == s1) {
-			k--;
-		}
-		if (k == -1) {
-			return i+1;
+	while (d != ns && k >= c[d][s1]) {
+		k-=c[d][s1];
+		d++;
+	}
+	if (d != ns) {
+		int mx = min((d+1)*s, n);
+		for (int i=d*s;i<mx;i++) {
+			int si = find_root(seg[i], seg, pseg);
+			if (si == s1) {
+				k--;
+			}
+			if (k == -1) {
+				return i+1;
+			}
 		}
 	}
 	return -1;
 }
 
 
-static int marge(int x, int y, int z, vector<int> &seg, vector<int> &pseg, vector<int> &res)
+static int marge(int x, int y, int z, int ns, vector<vector<int>> &c, vector<int> &seg, vector<int> &pseg, vector<int> &res)
 {
 	int s1 = find_root(seg[x], seg, pseg), s2 = find_root(seg[y], seg, pseg);
 	if (s1 != s2) {
+		for (int i=0;i<ns;++i) {
+			c[i][s1] += c[i][s2];
+		}
 		pseg[s2] = s1;
 		res[z-1] = -3;
 		return 2;
@@ -121,7 +123,7 @@ int main()
 	vector<Ver> tree(q+1);
 	build_tree(q, zap, tree);
 
-	if (g == 4 || g == 6) {
+	if (g == 41 || g == 61) {
 		vector<int> seg(n), dep(n, 1), pseg(n);
 		for (int i=0;i<n;++i) {
 			seg[i] = i;
@@ -180,36 +182,50 @@ int main()
 			seg[i] = i;
 			pseg[i] = i;
 		}
+		int s = sqrt(n), ns = s;
+		if (s*s != n) {
+			ns++;
+		}
+		if (n>ns*s) {
+			ns++;
+		}
+		vector<vector<int>> c(ns, vector<int>(n, 0));
+		for (int i=0;i<n;++i) {
+			c[i/s][i] = 1;
+		}
 
 		vector<int> res(q, -2);
 		int x = 0;
 		while (!tree[0].ch.empty()){
 			if (x != 0) {
 				if (res[x-1] == -2 && zap[x][0] == 1) {
-					res[x-1] = zap_1(zap[x][1], zap[x][2], n, seg, pseg);
+					res[x-1] = zap_1(zap[x][1], zap[x][2], n, ns, s, c, seg, pseg);
 				}
 				if (zap[x][0] == 2) {
 					if (res[x-1] == -2) {
 						if (!tree[x].ch.empty()) {
-							zap[x][0] = marge(zap[x][1], zap[x][2], x, seg, pseg, res);
+							zap[x][0] = marge(zap[x][1], zap[x][2], x, ns, c, seg, pseg, res);
 						}
 					} else {
 						if (tree[x].ch.empty()) {
-							int s = find_root(zap[x][1], seg, pseg);
-							int s1 = seg[zap[x][2]];
-							while(pseg[s1] != s) {
+							int s2 = seg[zap[x][2]];
+							int s1 = pseg[s2];
+							while(pseg[s1] != s1) {
+								s2 = s1;
 								s1 = pseg[s1];
 							}
-							pseg[s1] = s1;
+							for (int i=0;i<ns;i++) {
+								c[i][s1] -= c[i][s2];
+							}
+							pseg[s2] = s2;
 						}
 					}
 				}
-			} else {
-				for(int i=0;i<n;i++) {
-					assert(pseg[i] == i);
-				}
 			}
 			if (tree[x].ch.empty()) {
+				if (g == 4 || g == 5) {
+					break;
+				}
 				x = tree[x].p;
 				tree[x].ch.pop_front();
 			} else {
