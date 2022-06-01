@@ -1,6 +1,17 @@
-#include <bits/stdc++.h>
+//#include <bits/stdc++.h>
+
+#include <vector>
+#include <iostream>
+#include <algorithm>
+#include <random>
 
 using namespace std;
+
+int random(int m)
+{
+    return rand()%m;
+}
+
 
 struct City
 {
@@ -11,91 +22,140 @@ struct City
 int main()
 {
 	int n, m;
-	cin>>n>>m;
+	long long t = time(NULL);
+	t *=t;
+	t = 2736013751257260049;
+	srand(t);
+	cout<<"t="<<t<<endl;
+//	cin>>n>>m;
+	n = random(9)+2;
+	m = random(min(2*n,n+20))+1;
+	cout<<n<<' '<<m<<"\n";
 	vector<City> roads(n);
-	vector<int> nroads(n, 0), nrroads(n, 0);
+	vector<int> nr(n, 0), nrr(n, 0);
 	for(int i=0;i<m;i++){
 		int a,b;
-		cin>>a>>b;
+//		cin>>a>>b;
+		a = random(n)+1;
+		b = random(n)+1;
+		while(b==a) {b = random(n)+1;}
+		cout<<a<<' '<<b<<"\n";
 		a--;
 		b--;
-		roads[a].out.push_back(b);
-		roads[b].in.push_back(a);
-		nroads[a]++;
-		nrroads[b]++;
+		if (find(roads[a].out.begin(), roads[a].out.end(), b) == roads[a].out.end()) {
+			roads[a].out.push_back(b);
+			roads[b].in.push_back(a);
+			nr[a]++;
+			nrr[b]++;
+		}
 	}
-	if (nrroads[0] > 0) {
-		vector<int> q(n+1, -1), q1(n+1, -1), tick(n, 0), nroads0(nroads), nrroads0(nrroads);
-		int y = 1, y1 = 1;
-		q[0] = 0;
-		q1[0] = 0;
-		int x, x1;
-		while(y != 0 || y1!=0) {
-			if (y != 0) {
-				x = q[y-1];
-			}
-			if (y1!=0) {
-				x1 = q1[y1-1];
-			}
-			if ((y+y1 == n+2 && x == x1) || (y == n+1) || (y1 == n+1)) {
+	cout<<"x\n";
+	bool flag = true;
+	vector<int> a(n), a1;
+	for(int i=0;i<n;i++) {a[i] = i;}
+	a1.reserve(11);
+	while (!a.empty()) {
+		for (auto it=a.begin();it!=a.end();it++) {
+			int i = (*it);
+			if (nr[i] == 0 || nrr[i] == 0) {
+				flag = false;
 				break;
 			}
-			int j = nroads[x]-1;
-			while(j != -1 && tick[roads[x].out[j]] != 0 && (roads[x].out[j] != 0 && nroads[roads[x].out[j]]==0)) {
-				j--;
+			bool flag1 = false;
+			if (nr[i]>1) {
+				int ind = -1;
+				for (int j=0;j<nr[i];j++) {
+					if (nrr[roads[i].out[j]] == 1) {
+						if (!flag1) {
+							flag1 = true;
+							ind = j;
+						} else {
+							flag = false;
+							break;
+						}
+					}
+				}
+				if (!flag) {break;}
+				if (ind == -1) {
+					a1.push_back(i);
+				} else {
+					ind = roads[i].out[ind];
+					for (int j=0;j<nr[i];j++) {
+						if (roads[i].out[j] != ind) {
+							nrr[roads[i].out[j]]--;
+							roads[roads[i].out[j]].in.erase(find(roads[roads[i].out[j]].in.begin(), roads[roads[i].out[j]].in.end(), i));
+						}
+					}
+					nr[i] = 1;
+					roads[i].out.resize(1);
+					roads[i].out[0] = ind;
+				}
 			}
-			int j1 = nrroads[x1]-1;
-			while(j1 != -1 && !(tick[roads[x1].in[j1]] == 0 || roads[x1].in[j1] == x) && (roads[x1].in[j1] != 0 && nrroads[roads[x1].in[j1]]==0)) {
-				j1--;
+			flag1 = false;
+			if (nrr[i]>1) {
+				int ind = -1;
+				for (int j=0;j<nrr[i];j++) {
+					if (nr[roads[i].in[j]] == 1) {
+						if (!flag1) {
+							flag1 = true;
+							ind = j;
+						} else {
+							flag = false;
+							break;
+						}
+					}
+				}
+				if (!flag) {break;}
+				if (ind == -1) {
+					a1.push_back(i);
+				} else {
+					ind = roads[i].in[ind];
+					for (int j=0;j<nrr[i];j++) {
+						if (roads[i].in[j] != ind) {
+							nr[roads[i].in[j]]--;
+							roads[roads[i].in[j]].out.erase(find(roads[roads[i].in[j]].out.begin(), roads[roads[i].in[j]].out.end(), i));
+						}
+					}
+					nrr[i] = 1;
+					roads[i].in.resize(1);
+					roads[i].in[0] = ind;
+				}
+			}
+		}
+		if (!flag) {break;}
+		a = a1;
+		a1.clear();
+		a.reserve(11);
+		a1.reserve(11);
+	}
+	if (flag) {
+		vector<int> q(n+1, -1), tick(n, 0), nr0(nr);
+		int y = 1;
+		q[0] = 0;
+		int x;
+		while(y != 0 && q[n] != 0) {
+			x = q[y-1];
+			int j = nr[x]-1;
+			while(j != -1 && tick[roads[x].out[j]] != 0) {
+				j--;
 			}
 			if (j!= -1) {
 				q[y] = roads[x].out[j];
-				nroads[x]--;
+				nr[x]--;
 				tick[q[y]]=1;
 				y++;
 			} else {
 				y--;
 				tick[q[y]] = 0;
-				nroads[q[y]] = nroads0[q[y]];
-			}
-
-			if (j1!= -1) {
-				q1[y1] = roads[x1].in[j1];
-				nrroads[x1]--;
-				tick[q1[y1]]=1;
-				y1++;
-			} else {
-				y1--;
-				tick[q1[y1]] = 0;
-				nrroads[q1[y1]] = nrroads0[q1[y1]];
+				nr[q[y]] = nr0[q[y]];
 			}
 		}
-		if (y == 0 || y1==0) {
+		if (y == 0) {
 			cout<<"NO\n";
 		} else {
 			cout<<"YES\n";
-			if (y+y1 == n+2 && x == x1) {
-				cout<<1<<"\n";
-				for (int i=0;i<y-2;i++) {
-					cout<<q[i]+1<<' ';
-				}
-				cout<<q[y-1]+1<<' ';
-				for (int i=y1-2;i>-1;i--) {
-					cout<<q1[i]+1<<' ';
-				}
-			} else {
-				if (y == n+1) {
-					cout<<2<<"\n";
-					for (int i=0;i<y;i++) {
-						cout<<q[i]+1<<' ';
-					}
-				} else {
-					cout<<3<<"\n";
-					for (int i=y1-1;i>-1;i--) {
-						cout<<q1[i]+1<<' ';
-					}
-				} 
-
+			for (int i=0;i<=n;i++) {
+				cout<<q[i]+1<<' ';
 			}
 			cout<<"\n";
 		}
@@ -103,4 +163,3 @@ int main()
 		cout<<"NO\n";
 	}
 }
-
