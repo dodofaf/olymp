@@ -3,65 +3,79 @@
 #include <vector>
 #include <iostream>
 #include <algorithm>
-#include <random>
 
 using namespace std;
-
-int random(int m)
-{
-    return rand()%m;
-}
-
 
 struct City
 {
 	vector<int> in;
 	vector<int> out;
-};
+};/*
 
+bool check(int n, int na, vector<int> &a, vector<int> &nr, vector<int> &nrr, vector<City> &roads) 
+
+void delete_roads(int n, vector<int> &a, vector<int> &nr, vector<int> &nrr, vector<City> &roads) 
+{
+	int x = a[0];
+	if (nr[x]>1) {
+		int nr0 = nr[x];
+		for(int i=1;i<nr[x];++i) {
+			swap(roads[x].out[0], roads[x].out[i])
+			if (nrr[x]>1) {
+
+			}
+		}
+	}
+}
+*/
 int main()
 {
 	int n, m;
-	long long t = time(NULL);
-	t *=t;
-	t = 2736013751257260049;
-	srand(t);
-	cout<<"t="<<t<<endl;
-//	cin>>n>>m;
-	n = random(9)+2;
-	m = random(min(2*n,n+20))+1;
-	cout<<n<<' '<<m<<"\n";
+	cin>>n>>m;
 	vector<City> roads(n);
 	vector<int> nr(n, 0), nrr(n, 0);
 	for(int i=0;i<m;i++){
 		int a,b;
-//		cin>>a>>b;
-		a = random(n)+1;
-		b = random(n)+1;
-		while(b==a) {b = random(n)+1;}
-		cout<<a<<' '<<b<<"\n";
+		cin>>a>>b;
 		a--;
 		b--;
-		if (find(roads[a].out.begin(), roads[a].out.end(), b) == roads[a].out.end()) {
+		if (a != b && find(roads[a].out.begin(), roads[a].out.end(), b) == roads[a].out.end()) {
 			roads[a].out.push_back(b);
 			roads[b].in.push_back(a);
 			nr[a]++;
 			nrr[b]++;
 		}
 	}
-	cout<<"x\n";
 	bool flag = true;
 	vector<int> a(n), a1;
 	for(int i=0;i<n;i++) {a[i] = i;}
 	a1.reserve(11);
+	int pna = -1, na = n; 
 	while (!a.empty()) {
+		a1.clear();
+		if (na == pna) {
+			int x = a[0];
+			if (nr[x]>1){
+				int y = roads[x].out[0];
+				nr[x]--;
+				nrr[y]--;
+				roads[y].in.erase(find(roads[y].in.begin(), roads[y].in.end(), x));
+				roads[x].out.erase(find(roads[x].out.begin(), roads[x].out.end(), y));
+			} else {
+				int y = roads[x].in[0];
+				nrr[x]--;
+				nr[y]--;
+				roads[y].out.erase(find(roads[y].out.begin(), roads[y].out.end(), x));
+				roads[x].in.erase(find(roads[x].in.begin(), roads[x].in.end(), y));
+			}
+		}
 		for (auto it=a.begin();it!=a.end();it++) {
 			int i = (*it);
 			if (nr[i] == 0 || nrr[i] == 0) {
 				flag = false;
 				break;
 			}
-			bool flag1 = false;
+			bool flag1 = false, f = true;
 			if (nr[i]>1) {
 				int ind = -1;
 				for (int j=0;j<nr[i];j++) {
@@ -78,6 +92,7 @@ int main()
 				if (!flag) {break;}
 				if (ind == -1) {
 					a1.push_back(i);
+					f = false;
 				} else {
 					ind = roads[i].out[ind];
 					for (int j=0;j<nr[i];j++) {
@@ -92,6 +107,7 @@ int main()
 				}
 			}
 			flag1 = false;
+			if (!flag) {break;}
 			if (nrr[i]>1) {
 				int ind = -1;
 				for (int j=0;j<nrr[i];j++) {
@@ -107,7 +123,9 @@ int main()
 				}
 				if (!flag) {break;}
 				if (ind == -1) {
-					a1.push_back(i);
+					if (f){
+						a1.push_back(i);
+					}
 				} else {
 					ind = roads[i].in[ind];
 					for (int j=0;j<nrr[i];j++) {
@@ -121,36 +139,29 @@ int main()
 					roads[i].in[0] = ind;
 				}
 			}
+			if (!flag) {break;}
 		}
 		if (!flag) {break;}
+		a.clear();
 		a = a1;
+		pna = na;
+		na = a.size();
 		a1.clear();
-		a.reserve(11);
-		a1.reserve(11);
+//		a1.reserve(11);
 	}
+//	cout<<"x\n";
 	if (flag) {
-		vector<int> q(n+1, -1), tick(n, 0), nr0(nr);
-		int y = 1;
+		vector<int> q(n+1); 
 		q[0] = 0;
-		int x;
-		while(y != 0 && q[n] != 0) {
-			x = q[y-1];
-			int j = nr[x]-1;
-			while(j != -1 && tick[roads[x].out[j]] != 0) {
-				j--;
-			}
-			if (j!= -1) {
-				q[y] = roads[x].out[j];
-				nr[x]--;
-				tick[q[y]]=1;
-				y++;
-			} else {
-				y--;
-				tick[q[y]] = 0;
-				nr[q[y]] = nr0[q[y]];
-			}
+		int x = roads[0].out[0], y = 1;
+		q[y] = x;
+		y++;
+		while (x!=0) {
+			x = roads[x].out[0];
+			q[y] = x;
+			y++;
 		}
-		if (y == 0) {
+		if (y != n+1) {
 			cout<<"NO\n";
 		} else {
 			cout<<"YES\n";
