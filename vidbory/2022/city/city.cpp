@@ -10,24 +10,8 @@ struct City
 {
 	vector<int> in;
 	vector<int> out;
-};/*
+};
 
-bool check(int n, int na, vector<int> &a, vector<int> &nr, vector<int> &nrr, vector<City> &roads) 
-
-void delete_roads(int n, vector<int> &a, vector<int> &nr, vector<int> &nrr, vector<City> &roads) 
-{
-	int x = a[0];
-	if (nr[x]>1) {
-		int nr0 = nr[x];
-		for(int i=1;i<nr[x];++i) {
-			swap(roads[x].out[0], roads[x].out[i])
-			if (nrr[x]>1) {
-
-			}
-		}
-	}
-}
-*/
 int main()
 {
 	int n, m;
