@@ -1,17 +1,8 @@
-#include <bits/stdc++.h>
+#include <iostream>
+#include <vector>
 
 using namespace std;
 
-struct Sum
-{
-	int rs;
-	int ind;
-}; 
-struct St
-{
-	int rss;
-	vector<Sum> ar;
-}; 
 
 void input_ar(int n, vector<int> &ar)
 {
@@ -20,37 +11,9 @@ void input_ar(int n, vector<int> &ar)
 	}
 }
 
-int sum_ar(int n, vector<int> &ar)
+static int rds(int sum)
 {
-	int sum = 0;
-	for (int i=0;i<n;i++) {
-		sum += ar[i];
-	}
-	return sum;
-}
-
-static int rds(int sum_gr)
-{
-	return (sum_gr/10 + (sum_gr%10>4))*10;
-}
-
-void mn_sum(int d, int st, int &min_sum, int sum, vector<St> &arr)
-{
-	int md = rds(4*(d+1));
-	if (min_sum <= sum-md) {return;}
-	int rdsg = arr[st].rss;
-	for (auto i=arr[st].ar.begin();i!=arr[st].ar.end();i++) {
-		int ds = rdsg-(i->rs + arr[i->ind+1].rss);
-		sum -= ds;
-		if (min_sum>sum) {
-			min_sum = sum;
-		}
-		if (d != 1) {
-			mn_sum(d-1, i->ind+1, min_sum, sum, arr);
-		}
-		sum += ds;
-		if (min_sum <= sum-md) {return;}
-	}
+	return (sum/10 + (sum%10>4))*10;
 }
 
 int main()
@@ -59,24 +22,36 @@ int main()
 	cin>>n>>d;
 	vector<int> ar(n);
 	input_ar(n, ar);
-	vector<St> arr(n);
+	vector<vector<int>> arr(n, vector<int>(n, 0));
 	for(int i=0;i<n;i++) {
 		int s = 0;
-		arr[i].ar.reserve(n);
-		for(int j=i;j<n-1;j++) {
+		for(int j=i+1;j<n;j++) {
 			s+=ar[j];
 			int rs = rds(s);
-			if (s>rs && s-rs+ar[j+1]>4) {
-				Sum s1;
-				s1.ind = j;
-				s1.rs = rs;
-				arr[i].ar.push_back(s1);
-			}
+			arr[i][j] = rs;
 		}
-		s+=ar[n-1];
-		arr[i].rss = rds(s);
 	}
-	int min_sum = rds(sum_ar(n, ar));
-	mn_sum(d, 0, min_sum, min_sum, arr);
-	cout<<min_sum<<"\n";
+	vector<vector<int>> res(d+1, vector<int>(n));
+	int s = 0;
+	for (int i=0;i<n;++i) {
+		s+=ar[i];
+		res[0][i] = rds(s);
+	}
+	int min = res[0][n-1];
+	for (int i=1;i<d+1;++i) {
+		res[i][0] = res[i-1][0];
+		for (int j=1;j<n;++j) {
+			int mn = res[i-1][j];
+			for (int j1=0;j1<j;j1++){
+				if (mn>arr[j1][j]+res[i-1][j1]) {
+					mn=arr[j1][j]+res[i-1][j1];
+				}
+			}
+			res[i][j] = mn;
+		}
+		if (min>res[i][n-1]){
+			min=res[i][n-1];
+		}
+	}
+	cout<<min<<"\n";
 }
