@@ -47,19 +47,14 @@ int main()
             }
         }
         if (q==-1) {
+            int l = -1;
             for (int i=moves[cnt][0]+1;i<n*m;++i) {
                 if (tick[i/m][g[i/m][i%m]]>1 && g[i/m][i%m] != g[moves[cnt][0]/m][moves[cnt][0]%m]) {
-                    moves[cnt][0] = i;
-                    moves[cnt][1] = indf;
-                    cnt++;
-                    tick[i/m][g[i/m][i%m]]--;
-                    q = g[i/m][i%m];
-                    g[i/m][i%m] = -1;
-                    indf = i;
+                    l = i;
                     break;
                 }
             }
-            if (q == -1) {
+            if (l == -1) {
                 if (moves[cnt][0] == -1 && cnt<min_cnt) {
                     min_cnt = cnt;
                     min_moves = moves;
@@ -67,13 +62,20 @@ int main()
                 moves[cnt][0] = -1;
                 moves[cnt][1] = -1;
                 cnt--;
+            } else {
+                moves[cnt][0] = l;
+                moves[cnt][1] = indf;
+                cnt++;
+                tick[l/m][g[l/m][l%m]]--;
+                q = g[l/m][l%m];
+                g[l/m][l%m] = -1;
+                indf = l;
             }
         } else {
             int l = indf/m, x=-1;
             if (moves[cnt][0]!=-1 && moves[cnt][0]!=n*m) {
                 x = g[moves[cnt][0]/m][moves[cnt][0]%m];
-            }
-            if (moves[cnt][0]==n*m) {
+            } else if (moves[cnt][0]==n*m) {
                 x = q;
             }
             for (int i=x+1;i<m;++i) {
@@ -92,15 +94,7 @@ int main()
             for (int in=0;in<n*m;++in) {
                 int i = in/m,j =in%m;
                 if (tick[i][x]>1 && g[i][j] == x) {
-                    tick[l][x]++;
-                    tick[i][x]--;
-                    g[l][indf%m]=x;
-                    g[i][j]=-1;
-                    moves[cnt][0] = i*m+j;
-                    moves[cnt][1] = indf;
-                    indf = i*m+j;
-                    cnt++;
-                    l1 = i;
+                    l1 = in;
                     break;
                 }
             }
@@ -112,6 +106,17 @@ int main()
                 moves[cnt][1] = indf;
                 indf = n*m;
                 cnt++;
+            } else {
+                int i = l1/m,j = l1%m;
+                tick[l][x]++;
+                tick[i][x]--;
+                g[l][indf%m]=x;
+                g[i][j]=-1;
+                moves[cnt][0] = i*m+j;
+                moves[cnt][1] = indf;
+                indf = i*m+j;
+                cnt++;
+                l1 = i;
             }
         }
     }
