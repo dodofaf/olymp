@@ -48,11 +48,25 @@ int main()
         }
         if (q==-1) {
             int l = -1;
-            for (int i=moves[cnt][0]+1;i<n*m;++i) {
-                if (tick[i/m][g[i/m][i%m]]>1 && g[i/m][i%m] != g[moves[cnt][0]/m][moves[cnt][0]%m]) {
-                    l = i;
-                    break;
+            int x = 0;
+            if (moves[cnt][0] != -1) {
+                x = g[moves[cnt][0]/m][moves[cnt][0]%m];
+                for (int i=(moves[cnt][0]/m+1)*m;i<n*m;i++) {
+                    if (g[i/m][i%m] == x && tick[i/m][x]>1) {
+                        l = i;
+                        break;
+                    }
                 }
+                if (l==-1){x++;}
+            }
+            while (x!=m && l == -1) {
+                for (int i=0;i<n*m;i++) {
+                    if (g[i/m][i%m] == x && tick[i/m][x]>1) {
+                        l = i;
+                        break;
+                    }
+                }
+                if (l==-1){x++;}
             }
             if (l == -1) {
                 if (moves[cnt][0] == -1 && cnt<min_cnt) {
@@ -66,8 +80,8 @@ int main()
                 moves[cnt][0] = l;
                 moves[cnt][1] = indf;
                 cnt++;
-                tick[l/m][g[l/m][l%m]]--;
-                q = g[l/m][l%m];
+                tick[l/m][x]--;
+                q = x;
                 g[l/m][l%m] = -1;
                 indf = l;
             }
