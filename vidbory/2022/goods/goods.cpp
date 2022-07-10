@@ -35,7 +35,7 @@ int main()
         if (cnt == min_cnt) {
             moves[cnt][0] = -1;
             moves[cnt][1] = -1;
-            moves[cnt][1] = -1;
+            moves[cnt][2] = -1;
             cnt--;
             continue;
         }
