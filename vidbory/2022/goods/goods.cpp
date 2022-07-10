@@ -1,26 +1,40 @@
 #include <iostream>
 #include <vector>
+#include <set>
 
 using namespace std;
+
+int find_type_in_group(int gr, int type, int m, vector<int> &g) {
+    for(int i=0;i<m;i++){
+        if (g[i] == type){
+            g[i] = -1;
+            return gr*m+i;
+        }
+    }
+    return -1;
+}
 
 int main()
 {
     int n, m;
     cin>>n>>m;
+    vector<vector<set<int>>> st(n, vector<set<int>>(m));
     vector<vector<int>> g(n, vector<int>(m)), tick(n, vector<int>(m));
     for (int i=0;i<n;++i) {
         for (int j=0;j<m;++j) {
             cin>>g[i][j];
             g[i][j]--;
             tick[i][g[i][j]]++;
+            st[i][g[i][j]].insert(i*m+j);
         }
     }
     int cnt = 0, min_cnt=2e9;
-    vector<vector<int>> moves(n*m+2, vector<int>(2, -1)), min_moves;
+    vector<vector<int>> moves(n*m+2, vector<int>(3, -1)), min_moves;
     int indf = n*m, q = -1;
     while(cnt>0 || min_cnt==2e9) {
         if (cnt == min_cnt) {
             moves[cnt][0] = -1;
+            moves[cnt][1] = -1;
             moves[cnt][1] = -1;
             cnt--;
             continue;
@@ -28,46 +42,56 @@ int main()
         if (moves[cnt][0] != -1) {
             int x = moves[cnt][0];
             int y = moves[cnt][1];
+            int type = moves[cnt][2];
             if (x!=n*m) {
                 if (y!=n*m) {
-                    tick[y/m][g[y/m][y%m]]--;
-                    g[x/m][x%m] = g[y/m][y%m];
-                    g[y/m][y%m] = -1;
+                    tick[y][type]--;
                 } else {
-                    g[x/m][x%m] = q;
                     q = -1;
                 }
-                indf = y;
-                tick[x/m][g[x/m][x%m]]++;
+                tick[x][type]++;
             } else {
-                tick[y/m][g[y/m][y%m]]--;
-                q = g[y/m][y%m];
-                g[y/m][y%m]=-1;
-                indf = y;
+                tick[y][type]--;
+                q = type;
             }
+            indf = y;
         }
         if (q==-1) {
             int l = -1;
-            int x = 0;
-            if (moves[cnt][0] != -1) {
-                x = g[moves[cnt][0]/m][moves[cnt][0]%m];
-                for (int i=(moves[cnt][0]/m+1)*m;i<n*m;i++) {
-                    if (g[i/m][i%m] == x && tick[i/m][x]>1) {
-                        l = i;
+            int t = -1;
+            if (moves[cnt][0] == -1){
+                for (int i=0;i<n;i++){
+                    for (int j=0;j<m;j++) {
+                        if (tick[i][j] > 1) {
+                            l = i;
+                            t = j;
+                            break;
+                        }
+                    }
+                    if (l!=-1){break;}
+                }
+            } else {
+                for (int i=moves[cnt][2]+1;i<m;i++) {
+                    if (tick[moves[cnt][0]][i] > 1) {
+                        l = moves[cnt][0];
+                        t = i;
                         break;
                     }
                 }
-                if (l==-1){x++;}
-            }
-            while (x!=m && l == -1) {
-                for (int i=0;i<n*m;i++) {
-                    if (g[i/m][i%m] == x && tick[i/m][x]>1) {
-                        l = i;
-                        break;
+                if (l == -1) {
+                    for (int i=moves[cnt][0]+1;i<n;i++){
+                        for (int j=0;j<m;j++) {
+                            if (tick[i][j] > 1) {
+                                l = i;
+                                t = j;
+                                break;
+                            }
+                        }
+                        if (l!=-1){break;}
                     }
                 }
-                if (l==-1){x++;}
             }
+            
             if (l == -1) {
                 if (moves[cnt][0] == -1 && cnt<min_cnt) {
                     min_cnt = cnt;
@@ -75,67 +99,80 @@ int main()
                 }
                 moves[cnt][0] = -1;
                 moves[cnt][1] = -1;
+                moves[cnt][2] = -1;
                 cnt--;
             } else {
                 moves[cnt][0] = l;
                 moves[cnt][1] = indf;
-                cnt++;
-                tick[l/m][x]--;
-                q = x;
-                g[l/m][l%m] = -1;
+                moves[cnt][2] = t;
+                tick[l][t]--;
+                q = t;
                 indf = l;
+                cnt++;
             }
         } else {
-            int l = indf/m, x=-1;
-            if (moves[cnt][0]!=-1 && moves[cnt][0]!=n*m) {
-                x = g[moves[cnt][0]/m][moves[cnt][0]%m];
-            } else if (moves[cnt][0]==n*m) {
-                x = q;
-            }
-            for (int i=x+1;i<m;++i) {
-                if (tick[l][i] == 0) {
-                     x = i;
-                     break;
+            int t = moves[cnt][2];
+            int l = -1;
+            if (moves[cnt][0] != -1) {
+                for (int i=moves[cnt][0]+1;i<n;i++) {
+                    if (tick[i][moves[cnt][2]] > 1) {
+                        l = i;
+                    }
                 }
             }
-            if (x == -1 || (moves[cnt][0]==n*m && x == q) || (moves[cnt][0]!=-1 && moves[cnt][0]!=n*m && x == g[moves[cnt][0]/m][moves[cnt][0]%m])) {
-                moves[cnt][0] = -1;
-                moves[cnt][1] = -1;
-                cnt--;
-                continue;
-            }
-            int l1 = -1;
-            for (int in=0;in<n*m;++in) {
-                int i = in/m,j =in%m;
-                if (tick[i][x]>1 && g[i][j] == x) {
-                    l1 = in;
-                    break;
+            if (l == -1) {
+                for (int i=t+1;i<m;++i) {
+                    if (tick[indf][i] == 0) {
+                         t = i;
+                         break;
+                    }
+                }
+                if (t == moves[cnt][2]) {
+                    moves[cnt][0] = -1;
+                    moves[cnt][1] = -1;
+                    moves[cnt][2] = -1;
+                    cnt--;
+                    continue;
+                }
+                for (int i=0;i<n;++i) {
+                    if (tick[i][t]>1) {
+                        l = i;
+                        break;
+                    }
                 }
             }
-            if (l1 == -1) {
-                g[l][indf%m]=q;
-                tick[l][q]++;
+            if (l == -1) {
+                tick[indf][q]++;
                 q = -1;
                 moves[cnt][0] = n*m;
                 moves[cnt][1] = indf;
+                moves[cnt][2] = t;
                 indf = n*m;
                 cnt++;
             } else {
-                int i = l1/m,j = l1%m;
-                tick[l][x]++;
-                tick[i][x]--;
-                g[l][indf%m]=x;
-                g[i][j]=-1;
-                moves[cnt][0] = i*m+j;
+                tick[indf][t]++;
+                tick[l][t]--;
+                moves[cnt][0] = l;
                 moves[cnt][1] = indf;
-                indf = i*m+j;
+                moves[cnt][2] = t;
+                indf = l;
                 cnt++;
-                l1 = i;
+                
             }
         }
     }
+    indf = n*m;
     cout<<min_cnt<<"\n";
     for (int i=0;i<min_cnt;i++) {
-        cout<<min_moves[i][0]+1<<' '<<min_moves[i][1]+1<<"\n";
+        if (min_moves[i][0] == n*m) {
+            cout<<n*m+1<<' '<<indf+1<<"\n";
+            indf = n*m;
+        } else {
+//            int x = find_type_in_group(min_moves[i][0], min_moves[i][2], m, g[min_moves[i][0]]);
+            int x = (*st[min_moves[i][0]][min_moves[i][2]].begin());
+            st[min_moves[i][0]][min_moves[i][2]].erase(x);
+            cout<<x+1<<' '<<indf+1<<"\n";
+            indf = x;
+        }
     }
 }
