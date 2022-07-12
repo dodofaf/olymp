@@ -20,12 +20,24 @@ int main()
     cin>>n>>m;
     vector<vector<set<int>>> st(n, vector<set<int>>(m));
     vector<vector<int>> g(n, vector<int>(m)), tick(n, vector<int>(m));
+    vector<set<int>> extra(n), ins(n), extra_gr(m);
     for (int i=0;i<n;++i) {
         for (int j=0;j<m;++j) {
             cin>>g[i][j];
             g[i][j]--;
             tick[i][g[i][j]]++;
             st[i][g[i][j]].insert(i*m+j);
+            if (tick[i][g[i][j]] == 2) {
+                extra[i].insert(g[i][j]);
+                extra_gr[g[i][j]].insert(i);
+            }
+        }
+    }
+    for (int i=0;i<n;i++) {
+        for (int j=0;j<m;j++) {
+            if (tick[i][j] == 0) {
+                ins[i].insert(j);
+            }
         }
     }
     int cnt = 0, min_cnt=2e9;
@@ -39,6 +51,9 @@ int main()
             cnt--;
             continue;
         }
+        auto itr_e = extra[0].begin();
+        auto itr_i = ins[0].begin();
+        auto itr_e_gr = extra_gr[0].begin();
         if (moves[cnt][0] != -1) {
             int x = moves[cnt][0];
             int y = moves[cnt][1];
@@ -46,12 +61,16 @@ int main()
             if (x!=n*m) {
                 if (y!=n*m) {
                     tick[y][type]--;
+                    itr_i = ins[y].insert(type).first;
                 } else {
                     q = -1;
                 }
                 tick[x][type]++;
+                itr_e = extra[x].insert(type).first;
+                itr_e_gr = extra_gr[type].insert(x).first;
             } else {
                 tick[y][type]--;
+                itr_i = ins[y].insert(type).first;
                 q = type;
             }
             indf = y;
@@ -61,34 +80,27 @@ int main()
             int t = -1;
             if (moves[cnt][0] == -1){
                 for (int i=0;i<n;i++){
-                    for (int j=0;j<m;j++) {
-                        if (tick[i][j] > 1) {
-                            l = i;
-                            t = j;
-                            break;
-                        }
-                    }
-                    if (l!=-1){break;}
-                }
-            } else {
-                for (int i=moves[cnt][2]+1;i<m;i++) {
-                    if (tick[moves[cnt][0]][i] > 1) {
-                        l = moves[cnt][0];
-                        t = i;
+                    itr_e = extra[i].begin();
+                    if (itr_e != extra[i].end()){
+                        l = i;
+                        t = (*itr_e);
                         break;
                     }
                 }
-                if (l == -1) {
+            } else {
+                itr_e++;
+                if (itr_e == extra[moves[cnt][0]].end()) {
                     for (int i=moves[cnt][0]+1;i<n;i++){
-                        for (int j=0;j<m;j++) {
-                            if (tick[i][j] > 1) {
-                                l = i;
-                                t = j;
-                                break;
-                            }
+                        itr_e = extra[i].begin();
+                        if (itr_e != extra[i].end()){
+                            l = i;
+                            t = (*itr_e);
+                            break;
                         }
-                        if (l!=-1){break;}
                     }
+                } else {
+                    l = moves[cnt][0];
+                    t = (*itr_e);
                 }
             }
             
@@ -106,6 +118,10 @@ int main()
                 moves[cnt][1] = indf;
                 moves[cnt][2] = t;
                 tick[l][t]--;
+                if (tick[l][t] == 1) {
+                    extra[l].erase(itr_e);
+                    extra_gr[t].erase(l);
+                }
                 q = t;
                 indf = l;
                 cnt++;
@@ -113,36 +129,35 @@ int main()
         } else {
             int t = moves[cnt][2];
             int l = -1;
-            if (moves[cnt][0] != -1) {
-                for (int i=moves[cnt][0]+1;i<n;i++) {
-                    if (tick[i][moves[cnt][2]] > 1) {
-                        l = i;
-                    }
+            if (moves[cnt][0] != -1 && moves[cnt][0] != n*m) {
+                itr_e_gr++;
+                if (itr_e_gr != extra_gr[t].end()) {
+                    l=(*itr_e_gr);
                 }
             }
             if (l == -1) {
-                for (int i=t+1;i<m;++i) {
-                    if (tick[indf][i] == 0) {
-                         t = i;
-                         break;
-                    }
+                if (moves[cnt][0] != -1){
+                    itr_i++;
+                } else {
+                    itr_i = ins[indf].begin();
                 }
-                if (t == moves[cnt][2]) {
+                if (itr_i == ins[indf].end()) {
                     moves[cnt][0] = -1;
                     moves[cnt][1] = -1;
                     moves[cnt][2] = -1;
                     cnt--;
                     continue;
+                } else {
+                    t = (*itr_i);
                 }
-                for (int i=0;i<n;++i) {
-                    if (tick[i][t]>1) {
-                        l = i;
-                        break;
-                    }
+                itr_e_gr = extra_gr[t].begin();
+                if (itr_e_gr != extra_gr[t].end()) {
+                    l=(*itr_e_gr);
                 }
             }
             if (l == -1) {
-                tick[indf][q]++;
+                tick[indf][t]++;
+                ins[indf].erase(itr_i);
                 q = -1;
                 moves[cnt][0] = n*m;
                 moves[cnt][1] = indf;
@@ -152,12 +167,16 @@ int main()
             } else {
                 tick[indf][t]++;
                 tick[l][t]--;
+                ins[indf].erase(itr_i);
+                if (tick[l][t] == 1) {
+                    extra[l].erase(t);
+                    extra_gr[t].erase(itr_e_gr);
+                }
                 moves[cnt][0] = l;
                 moves[cnt][1] = indf;
                 moves[cnt][2] = t;
                 indf = l;
                 cnt++;
-                
             }
         }
     }
