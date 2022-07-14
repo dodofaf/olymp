@@ -28,7 +28,7 @@ bool check(int l1, int r1, int l2, int r2) {
 int main()
 {
 #if 0
-	int n
+	int n;
 	cin>>n;
 	vector<Segment> seg(n);
 	for (int i=0;i<n+1;i++) {
@@ -49,17 +49,31 @@ int main()
     	iss>>seg[i].r;
     }
 #endif
+    int m = -1;
+#if 1
     fstream sout("magic.out", sout.out);
+#endif
     for (int i=0;i<n+1;i++) {
     	int cnt = 0;
     	for (int j=0;j<n+1;j++) {
     		cnt += check(seg[i].l, seg[i].r, seg[j].l, seg[j].r);
     	}
-    	if (cnt == n+1 || cnt<n || i == n) {
+    	if (cnt<n) {
 #if 0
 	   		cout<<i+1<<"\n";
 #else
 			sout<<i+1<<"\n";
+#endif
+			break;
+    	}
+    	if (cnt == n){
+    		m = i;
+    	}
+    	if (i == n) {
+#if 0
+	   		cout<<m+1<<"\n";
+#else
+			sout<<m+1<<"\n";
 #endif
 			break;
     	}
