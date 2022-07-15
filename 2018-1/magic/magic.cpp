@@ -27,14 +27,6 @@ bool check(int l1, int r1, int l2, int r2) {
 
 int main()
 {
-#if 0
-	int n;
-	cin>>n;
-	vector<Segment> seg(n);
-	for (int i=0;i<n+1;i++) {
-		cin>>seg[i].l>>seg[i].r;
-    }
-#else
 	string line;
 	fstream sin("magic.in", sin.in);
 	getline(sin, line);
@@ -48,35 +40,41 @@ int main()
     	iss>>seg[i].l;
     	iss>>seg[i].r;
     }
-#endif
-    int m = -1;
-#if 1
+    int m = 0;
     fstream sout("magic.out", sout.out);
-#endif
-    for (int i=0;i<n+1;i++) {
-    	int cnt = 0;
-    	for (int j=0;j<n+1;j++) {
-    		cnt += check(seg[i].l, seg[i].r, seg[j].l, seg[j].r);
+    vector<Segment> bef(n+1), af(n+1);
+    bef[0].l = 1;
+    bef[0].r = 1e9;
+    af[n].l = 1;
+    af[n].r = 1e9;
+    int ind = -1;
+    for(int i=1;i<n+1;i++) {
+    	if (check(seg[i].l, seg[i].r, bef[i-1].l, bef[i-1].r)) {
+    		bef[i].l = max(seg[i].l, bef[i-1].l);
+    		bef[i].r = min(seg[i].r, bef[i-1].r);
+    	} else {
+    		ind = i;
+    		break;
     	}
-    	if (cnt<n) {
-#if 0
-	   		cout<<i+1<<"\n";
-#else
-			sout<<i+1<<"\n";
-#endif
-			break;
+    }
+    for(int i=n-1;i>-1;i--) {
+    	if (check(seg[i].l, seg[i].r, af[i+1].l, af[i+1].r)) {
+    		af[i].l = max(seg[i].l, af[i+1].l);
+    		af[i].r = min(seg[i].r, af[i+1].r);
+    	} else {
+    		ind = i;
+    		break;
     	}
-    	if (cnt == n){
-    		m = i;
-    	}
-    	if (i == n) {
-#if 0
-	   		cout<<m+1<<"\n";
-#else
-			sout<<m+1<<"\n";
-#endif
-			break;
-    	}
+    }
+    if (ind == -1) {
+    	for (int i=0;i<n+1;i++) {
+			if (check(af[i].l, af[i].r, bef[i].l, bef[i].r)) {
+				sout<<i+1<<"\n";
+				break;
+	    	}
+	    }
+    } else {
+    	sout<<ind+1<<"\n";
     }
 }
 
