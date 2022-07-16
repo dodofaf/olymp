@@ -36,19 +36,6 @@ int check(int x1, int y1, int x2, int y2, int x3, int y3, int x4, int y4)
 	}
 }
 
-bool check(int l1, int r1, int l2, int r2) {
-	if (l1<=l2 && r1>=l2){
-		return true;
-	}
-	if (l1>=l2 && r1<=r2) {
-		return true;
-	}
-	if (l1<=r2 && r1>=r2) {
-		return true;
-	}
-	return false;
-}
-
 int main()
 {
 	string line;
@@ -65,16 +52,16 @@ int main()
 	for (int i=0;i<q;i++) {
 		getline(sin, line);
 		istringstream iss(line);
-    	iss>>seg[i].x1>>seg[i].y1>>seg[i].x2>>seg[i].y2;
-    }
-    fstream sout("football.out", sout.out);
-    long long cnt = 0;
-    for (int i=0;i<q;i++) {
-    	cnt--;
-    	for (int j=0;j<q;j++) {
-    		cnt += check(seg[i].x1, seg[i].y1, seg[i].x2, seg[i].y2, seg[j].x1, seg[j].y1, seg[j].x2, seg[j].y2);
-    	}
-    }
+		iss>>seg[i].x1>>seg[i].y1>>seg[i].x2>>seg[i].y2;
+	}
+	fstream sout("football.out", sout.out);
+	long long cnt = 0;
+	for (int i=0;i<q;i++) {
+		cnt--;
+		for (int j=0;j<q;j++) {
+			cnt += check(seg[i].x1, seg[i].y1, seg[i].x2, seg[i].y2, seg[j].x1, seg[j].y1, seg[j].x2, seg[j].y2);
+		}
+	}
 	sout<<cnt/2<<"\n";
-//    cout<<cnt/2<<"\n";
+//	cout<<cnt/2<<"\n";
 }
