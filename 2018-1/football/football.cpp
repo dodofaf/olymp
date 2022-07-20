@@ -1,4 +1,3 @@
-
 #include <vector>
 #include <sstream>
 #include <fstream>
@@ -45,18 +44,20 @@ int main()
 	}
 	fstream sout("football.out", sout.out);
 	long long cnt = 0;
-	for (int i=0;i<q;i++) {
-		cnt--;
+	for (auto itr=sorted_by_x1.begin();itr!=sorted_by_x1.end();itr++) {
+		Segment i = (*itr);
 		Segment s;
 		s.ind = -1;
-		s.x1 = seg[i].x2+1;
-		auto itr_e = sorted_by_x1.insert(s).first;
-		for (auto itr=sorted_by_x1.begin();itr!=itr_e;itr++) {
-			if ((seg[i].x1<=(*itr).x2 && seg[i].x2>=(*itr).x1) && (seg[i].y1<=(*itr).y2 && seg[i].y2>=(*itr).y1)) {
+		s.x1 = i.x2+1;
+		auto itr_e = sorted_by_x1.lower_bound(s);
+		auto itr1 = itr;
+		itr1++;
+		for (auto itr2=itr1;itr2!=itr_e;itr2++) {
+			if (i.y1<=(*itr2).y2 && i.y2>=(*itr2).y1) {
 				cnt++;
 			}
 		}
 	}
-	sout<<cnt/2<<"\n";
-//	cout<<cnt/2<<"\n";
+	sout<<cnt<<"\n";
+//	cout<<cnt<<"\n";
 }
