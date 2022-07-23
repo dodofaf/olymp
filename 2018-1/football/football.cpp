@@ -55,10 +55,6 @@ int main()
 	fstream sout("football.out", sout.out);
 	for (auto itr=sorted_by_x1.begin();itr!=sorted_by_x1.end();itr++) {
 		Segment i = (*itr);
-//		Segment s;
-//		s.ind = -1;
-//		s.x1 = i.x2+1;
-//		auto itr_e = sorted_by_x1.lower_bound(s);
 		auto itr1 = itr;
 		itr1++;
 		for (auto itr2=itr1;itr2!=sorted_by_x1.end() && (*itr2).x1<=i.x2;itr2++) {
