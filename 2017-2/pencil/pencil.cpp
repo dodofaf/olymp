@@ -8,18 +8,22 @@
 #include <stdlib.h>
 #include <time.h>
 #include <cassert>
+#include <ext/pb_ds/assoc_container.hpp>
 
+using namespace __gnu_pbds;
 using namespace std;
 
+auto cmp2 = [](const vector<int> &a, const vector<int> &b)
+{
+    return a[1] < b[1] || (a[1] == b[1] && a[0] < b[0]) || (a[0] == b[0] && a[1] == b[1] && a[2] < b[2]);
+};
+
+typedef tree<vector<int>, null_type, decltype(cmp2), rb_tree_tag,
+tree_order_statistics_node_update> ordered_set;
 
 auto cmp1 = [](const vector<int> &a, const vector<int> &b)
 {
     return a[0] < b[0] || (a[0] == b[0] && a[1] < b[1]) || (a[0] == b[0] && a[1] == b[1] && a[2] < b[2]);
-};
-
-auto cmp2 = [](const vector<int> &a, const vector<int> &b)
-{
-    return a[1] < b[1] || (a[1] == b[1] && a[2] < b[2]);
 };
 
 int random(int m) 
@@ -60,16 +64,12 @@ void bf(int k, int n, vector<vector<int>> &seg)
 		}
 	}
 	cout<<"bf"<<res<<"\n";
-	for (int i=0;i<k;i++) {
-//		cout<<ress[i]<<' ';
-	}
-	cout<<"\n";
 }
 
 
 int main()
 { 
-#if 1
+#if 0
 	int t = time(NULL);
 //	t = 1661849431;
 //	t = 1661849016;
@@ -79,7 +79,7 @@ int main()
 //	t = 1661773188;
 	cout<<t<<"\n";
 	srand(t);
-	int n = 10000, k = random(n);
+	int n = 100000, k = random(n);
 
 	cout<<n<<' '<<k<<"\n\n";
 	set<vector<int>, decltype(cmp1)> seg_sort_by_mn(cmp1);
@@ -127,28 +127,16 @@ int main()
 	}
 #endif
 //	bf(k, n, seg);
-//	for (int i=0;i<n;i++) {
-//		cout<<seg[i][0]<<' '<<seg[i][1]<<"\n";
-//	}
-	set<vector<int>, decltype(cmp2)> sort_by_mx(cmp2);
+	ordered_set sort_by_mx(cmp2);
 	for (auto i=seg_sort_by_mn.begin();i!=seg_sort_by_mn.end();i++) {
 		sort_by_mx.insert((*i));
 	}
 	int res = 2e9;
-//	vector<int> q(k), ress;
 	for(auto i=seg_sort_by_mn.begin();i!=seg_sort_by_mn.end() && n>=k;i++) {
-//		cout<<"1\n";
 		sort_by_mx.erase((*i));
-//		q[0] = (*i)[2];
-//		cout<<"2\n";
 		n--;
-//		cout<<"3\n";
 		if (k > 1) {
-			auto it = sort_by_mx.begin();
-//		cout<<"4\n";
-			for (int j=0;j<k-2;j++) {
-				it++;
-			}
+			auto it = sort_by_mx.find_by_order(k-2);
 			int mn = (*i)[0];
 			int mx = max((*it)[1], (*i)[1]);
 			if (res>mx-mn) {
