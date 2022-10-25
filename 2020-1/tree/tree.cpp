@@ -60,7 +60,7 @@ int main()
 	}
 	int m;
 	cin>>m;
-	if (g == 1, 2) {
+	if (g == 1 || g == 2) {
 		vector<Ver_1_2> tree(n);
 		build_tree_1_2(n, roads, tree, a);
 		map<int, int> medians;
