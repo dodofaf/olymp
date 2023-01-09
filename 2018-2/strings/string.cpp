@@ -9,7 +9,6 @@ int random(int m)
 
 void bf(int n, string &s)
 {
- //   cout<<(int)'w'-(int)'m';
 	vector<int> dp(n, 0);
     vector<int> dp1(n, 0);
 	for (int i=n-2;i>-1;i--) {
@@ -77,6 +76,6 @@ int main()
 			}
 		}
 	}
-	cout<<pref[n-1]<<'\n';
+	sout<<pref[n-1]<<'\n';
 
 }
