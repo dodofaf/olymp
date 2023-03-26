@@ -1,0 +1,124 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+struct P
+{
+    int x1;
+    int y1;
+    int x2;
+    int y2;
+//    int ind;
+};
+
+bool check(P p1, P p2)
+{
+    return ((((p1.x1<=p2.x2 && p1.x1>=p2.x1) || (p1.x2<=p2.x2 && p1.x2>=p2.x1)) && ((p1.y1<=p2.y2 && p1.y1>=p2.y1) || (p1.y2<=p2.y2 && p1.y2>=p2.y1))) 
+    || ((p1.x1<=p2.x2 && p1.x1>=p2.x1) && (p1.x2<=p2.x2 && p1.x2>=p2.x1) && p1.y1<=p2.y1 && p1.y2>=p2.y2) 
+    || ((p1.y1<=p2.y2 && p1.y1>=p2.y1) && (p1.y2<=p2.y2 && p1.y2>=p2.y1) && p1.x1<=p2.x1 && p1.x2>=p2.x2));
+}
+
+int main() {
+    ios_base::sync_with_stdio(0);
+    cin.tie(0);
+    cout.tie(0);
+
+    int n, m, k;
+    cin>>n>>m>>k;
+    P ar[5000];
+    for (short int i=0;i<k;++i) {
+        cin>>ar[i].x1>>ar[i].y1>>ar[i].x2>>ar[i].y2;
+//        ar[i].ind = i;
+    }
+    list<short int> cross[5000];
+    for (short int i=0;i<k-1;++i) {
+        for (short int j=i+1;j<k;++j) {
+            if (check(ar[i], ar[j])) {
+                cross[i].push_back(j);
+                cross[j].push_back(i);
+            }
+        }
+    }
+    P tt[5000];
+    int s1=0, s2=0, s3=0;
+    short int ar1[5000], ar2[5000],  ar3[5000];
+    bool flag = true;
+    for (short int i=0;i<k;++i) {
+        if (ar[i].x1 == 0) {
+            tt[i].x1 = 1;
+            ar1[s1] = i;
+            ++s1;
+        }
+        if (ar[i].y1 == 0) {
+            tt[i].y1 = 1;
+            ar2[s2] = i;
+            ++s2;
+        }
+        if (ar[i].x2 == n) {
+            tt[i].x2 = 1;
+            ar3[s3] = i;
+            ++s3;
+        }
+        tt[i].y2 = (ar[i].y2 == m);
+        if ((tt[i].x1 && tt[i].x2) || (tt[i].y1 && tt[i].y2)) flag = false;
+    }
+    for (short int i=0;i<s1 && flag;++i) {
+        short int q[5000];
+        q[0] = ar1[i];
+        short int s = 1;
+        while (s && flag) {
+            --s;
+            int x = q[s];
+            for (auto itr=cross[x].begin();itr!=cross[x].end() && flag;++itr) {
+                if (!tt[(*itr)].x1) {
+                    if (tt[(*itr)].x2) flag = false;
+                    else {
+                        tt[(*itr)].x1 = 1;
+                        q[s] = (*itr);
+                        ++s;
+                    }
+                }
+            }
+        }
+    }
+    for (short int i=0;i<s2 && flag;++i) {
+        short int q[5000];
+        q[0] = ar2[i];
+        short int s = 1;
+        while (s && flag) {
+            --s;
+            int x = q[s];
+            for (auto itr=cross[x].begin();itr!=cross[x].end() && flag;++itr) {
+                if (!tt[(*itr)].y1) {
+                    if (tt[(*itr)].y2 || tt[(*itr)].x1) flag = false;
+                    else {
+                        tt[(*itr)].y1 = 1;
+                        q[s] = (*itr);
+                        ++s;
+                    }
+                }
+            }
+        }
+    }
+    for (short int i=0;i<s3 && flag;++i) {
+        short int q[5000];
+        q[0] = ar3[i];
+        short int s = 1;
+        while (s && flag) {
+            --s;
+            int x = q[s];
+            for (auto itr=cross[x].begin();itr!=cross[x].end() && flag;++itr) {
+                if (!tt[(*itr)].x2) {
+                    if (tt[(*itr)].y2) flag = false;
+                    else {
+                        tt[(*itr)].x2 = 1;
+                        q[s] = (*itr);
+                        ++s;
+                    }
+                }
+            }
+        }
+    }
+    if (flag) cout<<"YES\n";
+    else cout<<"NO\n";
+}
+

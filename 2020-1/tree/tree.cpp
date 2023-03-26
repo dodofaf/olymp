@@ -57,36 +57,27 @@ static void build_tree_1_2(int n, vector<list<int>> &roads, vector<Ver_1_2> &tre
 	}
 }
 
-int marge_lists_plus_find_mediane(int &n1, int n2, list<int> &list1, list<int> &list2)
+int merge_lists_plus_find_mediane(int &n1, int n2, list<int> &list1, list<int> &list2)
 {
 	int mediane = 0;
-//	print_list(list1);
-//	print_list(list2);
-//	cout<<n1<<' '<<n2<<'\n';
 	int i = 0, med = (n1+n2)/2;
-//	cout<<med<<'\n';
 	auto itr1 = list1.begin(), itr2 = list2.begin();
 	for (;(itr1 != list1.end()) && (itr2 != list2.end());++itr1, i++) {
 		for (;(itr2 != list2.end()) && ((*itr2)<=(*itr1));++itr2, i++) {
 			list1.insert(itr1, (*itr2));
-//			cout<<i<<"-2 ";
 			if (i == med) mediane = (*itr2);
 		}
-//		cout<<i<<"-1 ";
 		if (i == med) mediane = (*itr1);
 	}
 	for (;itr2 != list2.end();itr2++, i++) {
 		list1.insert(itr1, (*itr2));
-//		cout<<i<<' ';
 		if (i == med) mediane = (*itr2);
 	}
 	for (;itr1 != list1.end();itr1++, i++) {
 		if (i == med) mediane = (*itr1);
 	}
-//	cout<<i<<'\n';
 	n1 += n2;
 	list2.clear();
-//	cout<<mediane<<'\n';
 	return mediane;
 }
 
@@ -101,16 +92,22 @@ struct Ver_bf
 static void build_tree_bf(int n, vector<list<int>> &roads, vector<Ver_bf> &tree, vector<int> &a)
 {
 	tree[0].p = 0;
-	for (int i=0;i<n;++i) {	
-		tree[i].n_city = 0;
-		for (auto j=roads[i].begin();j!=roads[i].end();++j) {
-			if ((*j) != tree[i].p) {
-				tree[(*j)].p = i;
-				tree[i].sons.push_back((*j));
+	list<int> pre, ve;
+	pre.push_back(0);
+	while (!pre.empty()) {
+		for (auto itr=pre.begin();itr!=pre.end();++itr) {
+			for (auto j=roads[(*itr)].begin();j!=roads[(*itr)].end();++j) {
+				if (tree[(*itr)].p != (*j)) {
+					tree[(*j)].p = (*itr);
+					tree[(*itr)].sons.push_back((*j));
+					ve.push_back((*j));
+				}
 			}
 		}
-		roads[i].clear();
+		pre = ve;
+		ve.clear();
 	}
+	for (int i=0;i<n;++i) print_list(tree[i].sons);
 }
 
 void bf_k0(int n, int k, int m, vector<int> a, vector<list<int>> roads, vector<int> zap)
@@ -122,12 +119,8 @@ void bf_k0(int n, int k, int m, vector<int> a, vector<list<int>> roads, vector<i
 		int size = 1, reg_size = 0;
 		q[0] = i;
 		while (size!=0) {
-//			for(int j=0;j<size;++j) cout<<q[j]<<' ';
-//			cout<<'\n';
 			--size;
 			int x = q[size];
-//			cout<<'x'<<x<<'\n';
-//			cout<<reg_size<<'\n';
 			reg[reg_size] = a[x];
 			++reg_size;
 			for (auto itr=tree[x].sons.begin();itr!=tree[x].sons.end();++itr) {
@@ -137,9 +130,6 @@ void bf_k0(int n, int k, int m, vector<int> a, vector<list<int>> roads, vector<i
 		}
 		sort(reg.begin(), reg.end());
 		tree[i].med = reg[reg_size/2];
-//		cout<<i<<": ";
-//		for (int j=0;j<reg_size;++j) cout<<reg[j]<<' ';
-//		cout<<'\n'<<tree[i].med<<'\n';
 	}
 	for (int i=0;i<m;++i) {
 		int cnt = 0;
@@ -149,11 +139,12 @@ void bf_k0(int n, int k, int m, vector<int> a, vector<list<int>> roads, vector<i
 	cout<<'\n';
 }
 
-bool check_mediane_bf(int n, int x, vector<int> &a, vector<int> reg) 
+bool check_mediane_bf(int n, int x, vector<int> &a, vector<int> &reg) 
 {
-	for (int i=0;i<n;++i) reg[i] = a[reg[i]];
-	sort(reg.begin(), reg.end());
-	return reg[n/2] == x;
+	vector<int> res(n);
+	for (int i=0;i<n;++i) res[i] = a[reg[i]];
+	sort(res.begin(), res.end());
+	return res[n/2] == x;
 }
 
 void bf(int n, int k, int m, vector<int> a, vector<list<int>> roads, vector<int> zap)
@@ -161,34 +152,32 @@ void bf(int n, int k, int m, vector<int> a, vector<list<int>> roads, vector<int>
 	fstream sout("tree.out", sout.out);
 	vector<Ver_bf> tree(n);
 	build_tree_bf(n, roads, tree, a);
+	vector<int> qq(n+1);
 	for (int i=0;i<m;++i) {
 		int cnt = 0;
 		for (int j=0;j<n;j++) {
-			vector<int> reg(n+1, 2e9), qq(n+1);
+			vector<int> reg(n+1);
 			int size = 1, reg_size = 0;
 			qq[0] = j;
 			while (size!=0) {
 				--size;
-				int x = qq[size];
-				reg[reg_size] = x;
+				int x = qq[size%(n+1)];
+				reg[reg_size%(n+1)] = x;
 				++reg_size;
 				for (auto itr=tree[x].sons.begin();itr!=tree[x].sons.end();++itr) {
 					qq[size] = (*itr);
 					++size;
 				}
 			}
-			qq.clear();
+			//qq.clear();
 			reg.resize(reg_size);
-			sort(reg.begin(), reg.end());
-
 			if (check_mediane_bf(reg_size, zap[i], a, reg)) {
 				cnt++;
-				continue;
-			}
-
-			if (k>0) {
+			} else if (k>0) {
+//				cout<<"o\n";
 				int o_size = n-reg_size;
 				if (o_size>0) {
+//					cout<<"x\n";
 					vector<int> other(o_size);
 					for (int ii=0, s=0, jj = 0;ii<n;++ii) {
 						if (ii==reg[jj]) ++jj;
@@ -197,62 +186,56 @@ void bf(int n, int k, int m, vector<int> a, vector<list<int>> roads, vector<int>
 							++s;
 						}
 					}
+//					cout<<j<<':';for (int ii=0;ii<o_size;++ii) cout<<other[ii]<<' ';cout<<'\n';
 
-					int size_q = min(k, reg_size);
-					vector<pair<int, int>> q(size_q);
-
-					for (int ii=0;ii<size_q;++ii) {
-						q[ii].f = 0;
-						q[ii].s = 0;
-						swap(a[reg[q[ii].f]], a[other[q[ii].s]]);
-					}
-					bool flag = false;
-					while (!flag) {
-						if (check_mediane_bf(reg_size, zap[i], a, reg)) {
-							cnt++;
-							flag = true;
-							break;
-						} else {
-							swap(a[reg[q[0].f]], a[other[q[0].s]]);
-							q[0].s++;
-							int x = 0;
-							if (q[x].s == o_size) {
-								q[x].s = 0;
-								q[x].f++;
-								if(q[x].f == reg_size) {
-									q[x].f = 0;
-									x++;
-								}
-							}
-							swap(a[reg[q[0].f]], a[other[q[0].s]]);
-							while (x!=0 && x<size_q) {
-								swap(a[reg[q[x].f]], a[other[q[x].s]]);
-								if (q[x].s == o_size) {
-									q[x].s = 0;
-									q[x].f++;
-									if(q[x].f == reg_size) {
-										q[x].f = 0;
-										swap(a[reg[q[x].f]], a[other[q[x].s]]);
-										x++;
-									} else {
+					int max_q = min(k, reg_size);
+					vector<pair<int, int>> q(max_q);
+					bool flag = true;
+					for (int size_q=1;size_q<=max_q && flag;++size_q) {
+						for (int ii=0;ii<size_q;++ii) {
+							q[ii].f = 0;
+							q[ii].s = 0;
+							swap(a[reg[q[ii].f]], a[other[q[ii].s]]);
+						}
+						while (flag) {
+							if (check_mediane_bf(reg_size, zap[i], a, reg)) {
+								++cnt;
+								flag = false;
+							} else {
+								int x = 0;
+								while (x<size_q) {
+									swap(a[reg[q[x].f]], a[other[q[x].s]]);
+									++q[x].s;
+									if (q[x].s == o_size) {
+										q[x].s = 0;
+										++q[x].f;
+										if(q[x].f == reg_size) {
+											q[x].f = 0;
+											swap(a[reg[q[x].f]], a[other[q[x].s]]);
+											++x;
+										} else {
+											swap(a[reg[q[x].f]], a[other[q[x].s]]);
+											break;
+										}
+									}else {
 										swap(a[reg[q[x].f]], a[other[q[x].s]]);
 										break;
 									}
-								}else {
-									swap(a[reg[q[x].f]], a[other[q[x].s]]);
-									break;
 								}
+								if (x == size_q) flag = false;
 							}
-							if (x == size_q) flag = true;
 						}
+						for (int ii=0;ii<size_q;++ii) swap(a[reg[q[ii].f]], a[other[q[ii].s]]);
+//						for (int ii=0;ii<n;++ii) cout<<a[ii]<<' ';
+//						cout<<'\n';
 					}
 				}
 			}
 		}
-		cout<<cnt<<' ';
+//		cout<<cnt<<' ';
 		sout<<cnt<<' ';
 	}
-	cout<<'\n';
+//	cout<<'\n';
 	sout<<'\n';
 }
 
@@ -268,6 +251,7 @@ void rand_gen_tree(int &n, int deep, int max_width, vector<list<int>> &roads, ve
 	int x = 0;
 	for (int i=0;i<deep-1;++i) {
 		for (auto itr=pre.begin();itr!=pre.end();++itr) {
+//			int r = max_width;
 			int r = random(max_width+1)-1;
 			for (int j=0;j<r;j++) {
 				++x;
@@ -283,10 +267,10 @@ void rand_gen_tree(int &n, int deep, int max_width, vector<list<int>> &roads, ve
 		pre = ve;
 		ve.clear();
 	}
-//	for (int i=0;i<n;++i) {
-//		cout<<i<<": ";
-//		print_list(roads[i]);
-//	}
+	for (int i=0;i<n;++i) {
+		cout<<i<<": ";
+		print_list(roads[i]);
+	}
 }
 
 int mediane(int n, list<int> l)
@@ -300,6 +284,8 @@ int main()
 {
 #if 0
 	int t = time(NULL);
+//	t = 1667759369;
+//	t = 1667758455;
 //	t = 1667326033;
 //	t = 1667289649;
 //	t = 1667253493;
@@ -310,20 +296,25 @@ int main()
 	srand(t);
 	int n, k = 0, g = 1;
 
-	int deep = 5, max_width = 10;
+	int deep = 3, max_width = 5;
 	vector<list<int>> roads;
 	vector<int> nroads;
 	rand_gen_tree(n, deep, max_width, roads, nroads);
-	cout<<"n ="<<n<<'\n';
+	cout<<"n = "<<n<<'\n';
+
+//	k = random(6);
+	cout<<k<<'\n';
 
 	vector<int> a(n);
 	for (int i=0;i<n;++i) a[i]=random(10);
+
 //	for (int i=0;i<n;++i) cout<<a[i]<<' ';
 //	cout<<'\n';
 
 	int m = 5;
 	vector<int> zap(m);
 	for (int i=0;i<m;++i) zap[i]=random(10);
+
 //	for (int i=0;i<m;++i) cout<<zap[i]<<' ';
 //	cout<<'\n';
 #endif
@@ -383,11 +374,14 @@ int main()
 	getline(sin, line);
 	istringstream iss5(line);
 	for (int i=0;i<m;++i) iss5>>zap[i];
+
+//	for (int i=0;i<m;++i) cout<<zap[i]<<' ';
+//	cout<<'\n';
 #endif
 	fstream sout("tree.out", sout.out);
 
-//	bf(n, k, m, a, roads, zap);
-#if 1
+	bf(n, k, m, a, roads, zap);
+#if 0
 	if (g == 1 || g == 2) {
 		vector<Ver_1_2> tree(n);
 		build_tree_1_2(n, roads, tree, a);
@@ -402,7 +396,7 @@ int main()
 					while (tree[x].n_sons == 0 && x!=0) {
 						medians[tree[x].med]++;
 						int p = tree[x].p;
-						int med = marge_lists_plus_find_mediane(tree[p].n_city, tree[x].n_city, tree[p].reg, tree[x].reg);
+						int med = merge_lists_plus_find_mediane(tree[p].n_city, tree[x].n_city, tree[p].reg, tree[x].reg);
 						tree[p].n_sons--;
 						tree[p].med = med;
 						x = p;
