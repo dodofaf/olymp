@@ -27,6 +27,19 @@ int query2(int l1, int l2, int s1, int s2)
     return res;
 }
 
+int query3(int l1, int l2, int s1, int s2, int d1, int d2)
+{
+    cout<<"? "<<l1<<' '<<l2;
+    for (int i=0;i<l1;++i) cout<<' '<<s1+i*d1;
+    for (int i=0;i<l2;++i) cout<<' '<<s2+i*d2;
+    cout<<'\n';
+    cout.flush();
+    int res;
+    cin>>res;
+    return res;
+}
+
+
 void answer(int ans)
 {
     cout<<"! "<<ans<<'\n';
@@ -80,6 +93,34 @@ void g3(int n, int k)
     answer(l);
 }
 
+void g4(int n, int k)
+{
+    int d = (n-1)/k;
+    int l = 0, r = d, m, q;
+    while (r>l) {
+        m = (r-l+2)/3;
+        q = query3(m, m, l*k+1, (r-m+1)*k+1, k, k);
+        if (q == 1) l = r-m+1;
+        else if (q == 2) r = l+m-1;
+        else {
+            l = l+m;
+            r = r-m;
+        }
+    }
+    if (r != 0) {
+        r = r*k+1;
+        l = r-k+1;
+        int real = 1;
+        while (r>l) {
+            m = (r+l)/2;
+            q = query2(1, 1, real, m);
+            if (q == 1) r = m;
+            if (q == 0) l = m+1;
+        }
+        answer(l);
+    } else answer(1);
+}
+
 int main() {
     ios_base::sync_with_stdio(0);
     cin.tie(0);
@@ -90,5 +131,6 @@ int main() {
     if (g <= 1) g1(n, k);
     if (g == 2) g2(n, k);
     if (g == 3) g3(n, k);
-    if (g>3) answer(1);
+    if (g == 4) g4(n, k);
+    if (g>4) answer(1);
 }
